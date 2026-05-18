@@ -1,0 +1,50 @@
+{
+  "version": "1.0",
+  "project": {
+    "name": "my-project",
+    "description": "Project description goes here"
+  },
+  "agents": {
+    "enabled": true,
+    "directory": ".claude/agents",
+    "default": "code-reviewer"
+  },
+  "commands": {
+    "enabled": true,
+    "directory": ".claude/commands"
+  },
+  "hooks": {
+    "enabled": true,
+    "pre_commit": ".claude/hooks/pre-commit.sh",
+    "post_tool_use": ".claude/hooks/lint-on-save.sh"
+  },
+  "rules": {
+    "enabled": true,
+    "directory": ".claude/rules",
+    "autoApply": {
+      "frontend.md": ["src/components/**", "src/features/**", "src/app/**/*.tsx"],
+      "database.md": ["src/lib/db/**", "prisma/**", "**/repository.*"],
+      "api.md": ["src/app/api/**", "src/server/**"]
+    }
+  },
+  "skills": {
+    "enabled": true,
+    "directory": ".claude/skills"
+  },
+  "behavior": {
+    "alwaysReadClaudeMd": true,
+    "preferEditOverCreate": true,
+    "confirmDestructiveActions": true,
+    "autoRunLintOnSave": true,
+    "verbosity": "concise"
+  },
+  "ignore": [
+    "node_modules/**",
+    ".next/**",
+    "dist/**",
+    "build/**",
+    "coverage/**",
+    "*.lock",
+    ".env*"
+  ]
+}
