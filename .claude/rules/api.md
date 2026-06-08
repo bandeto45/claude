@@ -1,60 +1,101 @@
+---
+description: REST API, Server Actions, validation, auth, caching, and mobile-friendly responses
+---
+
 # API Rules
 
-Apply these rules whenever writing or reviewing API routes, controllers, or service integrations.
+Apply when writing or reviewing API routes, Server Actions, controllers, or service integrations.
+
+**Cross-check:** `.claude/rules/security.md` (auth, headers) and `.claude/rules/observability.md` (logging).
 
 ---
 
 ## Route Design
 
-- Follow **RESTful conventions**: `GET /users`, `POST /users`, `PATCH /users/:id`, `DELETE /users/:id`
-- Use **noun-based** resource paths, not verb-based (`/users` not `/getUsers`)
-- Nest resources when the relationship is strong: `/users/:id/posts`
-- Version the API if breaking changes are needed: `/api/v2/...`
+- **RESTful** resources: `GET /users`, `POST /users`, `PATCH /users/:id`, `DELETE /users/:id`
+- **Noun paths**, not verbs (`/users` not `/getUsers`)
+- Nest strong relationships: `/users/:id/posts`
+- Version breaking changes: `/api/v2/...`
+- **Server Actions** (Next.js): validate with Zod; return typed results, not thrown strings to the client
 
 ## Request Validation
 
-- Validate **all** incoming request bodies, query params, and path params with Zod
-- Return `400 Bad Request` with structured error details for validation failures
-- Never trust client-supplied IDs for authorization — always verify ownership server-side
+- Validate **all** bodies, query params, and path params with Zod
+- Return `400` with structured errors for validation failures
+- Never trust client IDs for authorization — verify ownership server-side
+- Reject unknown fields on write endpoints (`strict()` or `.strip()`)
 
 ## Response Format
 
-All responses must follow this envelope:
-
 ```json
 // Success
-{ "data": { ... } }
+{ "data": { ... }, "meta": { "page": 1, "pageSize": 20, "total": 142 } }
 
 // Error
 { "error": { "code": "VALIDATION_ERROR", "message": "...", "details": [...] } }
 ```
 
-- Use correct HTTP status codes: `200`, `201`, `204`, `400`, `401`, `403`, `404`, `409`, `422`, `500`
-- Never return a `200` with an error payload
+- Correct status codes: `200`, `201`, `204`, `400`, `401`, `403`, `404`, `409`, `422`, `429`, `500`
+- **Never** return `200` with an error payload
+- `204` only when the client needs no body (e.g. DELETE)
+
+## Pagination & Lists
+
+- Cursor-based pagination for large/mobile feeds; offset only for admin tables
+- Default `pageSize` ≤ 20; cap at 100
+- Always return `meta` with total or `hasMore` + `nextCursor`
+- Select only fields needed for list views — full detail on `GET /:id`
 
 ## Authentication & Authorization
 
-- All non-public routes must validate the session/JWT before processing
-- Use middleware for auth — never inline auth checks in route handlers
-- Apply **principle of least privilege** — only expose what the caller needs
-- Return `401 Unauthorized` for missing auth, `403 Forbidden` for insufficient permissions
+- Non-public routes validate session/JWT **before** business logic
+- Auth in middleware or shared guard — not copy-pasted per handler
+- Least privilege: expose only fields the caller may see
+- `401` missing/invalid auth; `403` valid auth, insufficient permission
 
 ## Rate Limiting
 
-- Apply rate limiting to all public-facing and auth endpoints
-- Auth endpoints (`/login`, `/register`, `/reset-password`): max 10 req/min per IP
-- General API: max 100 req/min per authenticated user
+| Endpoint type | Limit |
+|---------------|-------|
+| Auth (`/login`, `/register`, `/reset-password`) | 10 req/min per IP |
+| Public read | 60 req/min per IP |
+| Authenticated API | 100 req/min per user |
+
+Return `429` with `Retry-After` header when exceeded.
+
+## Caching (web & mobile)
+
+- `GET` responses: `Cache-Control` appropriate to mutability
+- Immutable assets: long `max-age` + fingerprinted URLs
+- Private user data: `Cache-Control: private, no-store`
+- ETag / `If-None-Match` for expensive read endpoints
+- Support `Accept-Encoding: gzip, br` in production
+
+## Mobile & Client Considerations
+
+- Keep payloads lean — omit nulls and unused relations on list endpoints
+- Stable `error.code` strings for client i18n and retry logic
+- Idempotency-Key header on `POST` that creates resources (payments, orders)
+- Timeouts: fail fast; return `504` gateway timeout, not hung connections
 
 ## Error Handling
 
-- All route handlers must be wrapped in try/catch or use an error boundary middleware
-- Log errors server-side with context (user ID, route, timestamp) — never expose stack traces to clients
-- Use a centralized error handler to normalize responses
+- Wrap handlers in try/catch or centralized error middleware
+- Log server-side with request ID and user context — **no stack traces to clients**
+- Normalize errors through a single `handleApiError()` helper
+- Distinguish operational errors (log + 500) from expected failures (4xx)
 
 ## Security Headers
 
-Ensure the following headers are set on all responses:
+Set on all responses (see `security.md` for full list):
+
 - `X-Content-Type-Options: nosniff`
-- `X-Frame-Options: DENY`
-- `Strict-Transport-Security: max-age=63072000`
-- `Content-Security-Policy` (configured per-app)
+- `X-Frame-Options: DENY` (or CSP `frame-ancestors`)
+- `Strict-Transport-Security` in production
+- `Content-Security-Policy` configured per app
+
+## Webhooks & Outbound Calls
+
+- Verify webhook signatures before processing
+- Process asynchronously when possible; return `200` quickly, retry with backoff on failure
+- Allowlist outbound URLs — no user-controlled fetch targets (SSRF)

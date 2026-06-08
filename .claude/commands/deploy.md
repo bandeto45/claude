@@ -23,7 +23,7 @@ Run pre-deployment checks and deploy the application to the target environment.
 - [ ] Environment variables are set in the target environment
 - [ ] Database migrations are ready (if applicable)
 - [ ] Feature flags are configured correctly
-- [ ] CHANGELOG.md is updated
+- [ ] Changelog or release notes updated (if the project maintains them)
 
 ## Deployment Steps
 

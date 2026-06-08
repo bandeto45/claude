@@ -1,86 +1,159 @@
 ---
 name: frontend-design
-description: Situational intelligence for making high-quality UI/UX decisions. Invoked when designing new screens, components, or interaction patterns.
+description: Situational intelligence for luxury, UX-first UI across web and mobile. Invoked when designing screens, components, or interaction patterns.
 triggers:
   - designing a new page
   - building a new component
   - asked about layout, spacing, or visual hierarchy
   - implementing responsive design
   - working on dark mode or theming
+  - luxury, premium, or elegant UI requests
 ---
 
 # Frontend Design Skill
 
-This skill provides Claude with situational design intelligence — opinionated guidance for building UIs that are consistent, accessible, and delightful.
+Design intelligence for UIs that are **consistent, accessible, and premium** — UX-first on web and mobile.
+
+**Also apply:** `.claude/rules/frontend.md` for TypeScript, state, a11y, and responsive requirements.
 
 ---
 
 ## Design Principles
 
-1. **Content first** — layout should serve the content, not the other way around
-2. **Progressive disclosure** — show only what users need at each step
-3. **Consistency** — reuse existing patterns before inventing new ones
-4. **Accessibility by default** — design for keyboard and screen reader from the start
+1. **UX before aesthetics** — every visual choice must aid clarity, trust, or task completion
+2. **Content first** — layout serves reading order and hierarchy
+3. **Progressive disclosure** — essentials visible; detail on demand
+4. **Consistency** — reuse tokens and section patterns before inventing new ones
+5. **Accessibility by default** — keyboard, screen reader, contrast, reduced motion
+
+---
+
+## Luxury & Elegant Aesthetic
+
+Professional luxury is **restraint**, not ornament.
+
+### Visual language
+
+| Element | Guidance |
+|---------|----------|
+| **Space** | Generous vertical rhythm (`py-16 md:py-24` sections); never crowd the hero |
+| **Type** | One sans-serif family; semibold headings + regular body; fluid `clamp()` for display |
+| **Color** | Warm neutrals or cool neutrals — 1 accent max; muted text one step from body |
+| **Surfaces** | Soft borders (`ring-1 ring-*/8`), subtle gradients, premium shadow on elevated cards |
+| **Motion** | 200–300ms ease; stagger entrance on hero only; honor `prefers-reduced-motion` |
+| **Imagery** | Full-bleed only when intentional; otherwise contained with aspect ratio |
+
+### Anti-patterns (cheap feel)
+
+- Rainbow gradients, glassmorphism everywhere, bouncing buttons
+- Too many font weights/families on one screen
+- Tiny touch targets or `text-xs` body copy on mobile
+- Spinners replacing entire page content
+- Empty states with no guidance or CTA
 
 ---
 
 ## Layout Patterns
 
-### Page Layout
-- Use a max-width container: `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`
-- Separate concerns: sidebar, main content, and panel are distinct layout zones
+### Page shell
 
-### Spacing Scale (Tailwind)
+```tsx
+<section className="py-16 md:py-24">
+  <div className="mx-auto max-w-7xl px-6 lg:px-16">
+    {/* content */}
+  </div>
+</section>
+```
+
+### Section hierarchy
+
+```
+SectionLabel   → uppercase, tracked, muted (10–12px)
+Heading        → display weight, text-balance, fluid size
+Body           → text-base md:text-lg, leading-relaxed, text-muted
+CTA row        → primary button + understated text link
+```
+
+### Spacing scale
+
 | Use | Class |
-|---|---|
-| Between related items | `gap-2` / `space-y-2` |
-| Between sections | `gap-6` / `space-y-6` |
-| Between page sections | `gap-12` / `space-y-12` |
+|-----|-------|
+| Related items | `gap-2` / `space-y-2` |
+| Card internals | `gap-4` / `p-6` |
+| Section blocks | `gap-8 md:gap-10` |
+| Between sections | `gap-12 md:gap-16` |
 
-### Responsive Breakpoints
-- Mobile-first: default styles are for mobile
-- `sm:` — 640px, `md:` — 768px, `lg:` — 1024px, `xl:` — 1280px
+### Responsive breakpoints
+
+Mobile-first defaults; enhance at `sm` (640), `md` (768), `lg` (1024), `xl` (1280).
+
+- Mobile: single column, full-width CTAs, collapsible nav
+- Tablet: 2-column grids where content supports it
+- Desktop: editorial multi-column; hover only with `(hover: hover)`
 
 ---
 
 ## Component Patterns
 
-### Form Fields
+### Form fields
+
 ```tsx
-<div className="space-y-1">
-  <label className="text-sm font-medium text-gray-700">{label}</label>
-  <input className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-  {error && <p className="text-xs text-red-500">{error}</p>}
+<div className="space-y-1.5">
+  <label className="text-sm font-medium text-foreground">{label}</label>
+  <input
+    className="w-full min-h-11 rounded-lg border border-foreground/15 bg-background px-4 py-2.5 text-base focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/30"
+  />
+  {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
 </div>
 ```
 
-### Empty States
-- Always provide an empty state for lists and search results
-- Include: icon, heading, description, and a primary action CTA
+### Primary button
 
-### Loading States
-- Use skeleton loaders (not spinners) for content areas
-- Use a spinner only for button actions
+```tsx
+<a className="inline-flex min-h-11 items-center justify-center rounded-full bg-foreground px-8 py-3 text-sm font-medium text-background shadow-[var(--shadow-premium)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[var(--shadow-premium-hover)] focus-visible:ring-2 focus-visible:ring-offset-2">
+  {label}
+</a>
+```
 
-### Error States
-- Inline validation errors appear below the field in red
-- Toast notifications for async operation outcomes
-- Full-page error boundary for unrecoverable errors
+### Cards
+
+- Rounded `rounded-2xl`, soft ring or border, image with fixed aspect ratio
+- Title → meta (date, tag) → excerpt → text link with underline offset
+- Hover: subtle lift or opacity — not scale > 1.05
+
+### Empty / loading / error
+
+| State | Pattern |
+|-------|---------|
+| Loading | Skeleton matching final layout dimensions |
+| Empty | Centered icon + heading + one-line explanation + CTA |
+| Error | Human message + retry action; preserve user input |
 
 ---
 
-## Color & Typography
+## Mobile UX Checklist
 
-- Use the design token system — no raw hex values in components
-- Typography scale: `text-xs`, `text-sm`, `text-base`, `text-lg`, `text-xl`, `text-2xl`, `text-4xl`
-- Body text: `text-gray-700`, muted text: `text-gray-500`, headings: `text-gray-900`
-- Primary action color: `blue-600` (hover: `blue-700`)
-- Destructive action color: `red-600` (hover: `red-700`)
+- [ ] Touch targets ≥ 44px
+- [ ] Body text ≥ 16px on small screens
+- [ ] No horizontal scroll on primary flows
+- [ ] Sticky header ≤ 64px; content not hidden under it (`pt-*` offset)
+- [ ] Forms single-column; appropriate `inputMode`
+- [ ] LCP image optimized with `next/image` + `sizes`
+- [ ] Tested at 375px and 768px widths
+
+---
+
+## Color & Typography Tokens
+
+- Semantic tokens only — `background`, `foreground`, `muted`, `accent`, `cream`, `charcoal`
+- No raw hex in components
+- Scale: `text-xs` labels → `text-base` body → fluid clamp for hero/section titles
+- Dark mode: pair every `bg-*` with `text-*`; test contrast in both themes
 
 ---
 
 ## Dark Mode
 
-- Use Tailwind's `dark:` variant throughout
-- Test every new component in both light and dark mode
-- Never hardcode `#ffffff` or `#000000` — use semantic color tokens
+- Tailwind `dark:` on surfaces, borders, and text
+- Avoid pure `#000` / `#fff` — use token neutrals
+- Reduce shadow intensity in dark mode; rely more on border separation

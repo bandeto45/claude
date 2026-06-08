@@ -1,13 +1,12 @@
 {
   "version": "1.0",
   "project": {
-    "name": "my-project",
-    "description": "Project description goes here"
+    "name": "claude-config-template",
+    "description": "Reusable AI assistant configuration (agents, rules, commands, hooks, skills) for TypeScript full-stack apps"
   },
   "agents": {
     "enabled": true,
-    "directory": ".claude/agents",
-    "default": "code-reviewer"
+    "directory": ".claude/agents"
   },
   "commands": {
     "enabled": true,
@@ -22,9 +21,38 @@
     "enabled": true,
     "directory": ".claude/rules",
     "autoApply": {
-      "frontend.md": ["src/components/**", "src/features/**", "src/app/**/*.tsx"],
-      "database.md": ["src/lib/db/**", "prisma/**", "**/repository.*"],
-      "api.md": ["src/app/api/**", "src/server/**"]
+      "frontend.md": [
+        "src/components/**",
+        "src/features/**",
+        "src/hooks/**",
+        "src/app/**/*.tsx"
+      ],
+      "api.md": ["src/app/api/**", "src/server/**", "src/actions/**"],
+      "database.md": ["src/lib/db/**", "prisma/**", "**/*repository*"],
+      "security.md": [
+        "src/app/api/**",
+        "src/server/**",
+        "src/actions/**",
+        "src/lib/auth/**",
+        "src/middleware.ts",
+        "middleware.ts"
+      ],
+      "observability.md": [
+        "src/lib/logger/**",
+        "src/lib/logging/**",
+        "src/lib/observability/**",
+        "**/logger*.ts",
+        "src/instrumentation.ts",
+        "instrumentation.ts"
+      ],
+      "testing.md": [
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "**/*.spec.ts",
+        "**/*.spec.tsx",
+        "**/e2e/**",
+        "**/__tests__/**"
+      ]
     }
   },
   "skills": {
@@ -45,6 +73,8 @@
     "build/**",
     "coverage/**",
     "*.lock",
-    ".env*"
+    ".env",
+    ".env.*",
+    "!.env.example"
   ]
 }

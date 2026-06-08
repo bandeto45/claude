@@ -33,7 +33,7 @@ Conduct a full code review of the current branch diff or a specified PR.
 - Is there a regression test for any bug fix?
 
 ### 4. Conventions
-- Does the code follow `.claude/rules/` for the relevant domain?
+- Does the code follow `.claude/rules/` for the relevant domain (including `testing.md` for test files)?
 - Are naming conventions consistent with the codebase?
 - Is the PR scoped appropriately (not too large)?
 
